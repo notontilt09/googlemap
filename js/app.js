@@ -30,7 +30,7 @@ var locations = [
 function initMap() {
 	map = new google.maps.Map(document.getElementById('map'), {
 		center: {lat: 36.1147, lng: -115.1728},
-		zoom: 13
+		zoom: 14
 	});
 
 	var largeInfoWindow = new google.maps.InfoWindow();
@@ -80,6 +80,7 @@ var ViewModel = function() {
 	// uses search-box input to filter the list of locations/markers shown to user
 	this.filteredLocations = ko.computed(function() {
 		var filter = self.filter().toLowerCase();
+		// in nothing typed in search box, display all items in hotelList
 		if (!filter) {
 			ko.utils.arrayForEach(self.hotelList(), function(i) {
 				i.marker.setVisible(true);
@@ -89,6 +90,8 @@ var ViewModel = function() {
 			});
 			return self.hotelList();
 		} else {
+			// if a filter is applied via the search-box, match items in hotelList to the search query
+			// only show items that match the query, hide the rest
 			return ko.utils.arrayFilter(self.hotelList(), function(i) {
 				var result = (i.title.toLowerCase().indexOf(filter) >= 0);
 				i.marker.setVisible(result);
@@ -109,10 +112,26 @@ var ViewModel = function() {
 		}, 2500);
 		infoWindow.open(map, location.marker);
 
-		// set content of infoWindow
-		infoWindow.setContent(location.title);
-	}
-}
+		// url for wikipedia article on location
+		var wikiURL = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + location.title + '&format=json&callback=wikiCallback';
+		// error handling if wikipedia call fails after 8s
+	//	var wikiRequestTimeout = setTimeout(function() {
+	//		infoWindow.setContent('Wikipedia Article Unavailable');
+	//	}, 8000);
+
+		// ajax request for wikipedia data
+		$.ajax({
+			url: wikiURL,
+			dataType: "jsonp",
+			success: function(data) {
+				console.log(data);
+				var article = data[0];
+				var url = 'http://en.wikipedia.org/wiki/' + article;
+				infoWindow.setContent('<a href="' + url + ' Las Vegas">' + article + '</a>');
+			}
+		});
+	};
+};
 
 
 

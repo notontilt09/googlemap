@@ -1,15 +1,14 @@
 // declare map variable
 var map; 
 
-/* hard coded locations.  'marker' property left as blank object literal, and will
-get filled in by the initMap function
-*/
+// hard coded locations.  'marker' property left as blank object literal, and will
+// get filled in by the initMap function
 var locations = [
 	{title: 'Bellagio', location: {lat: 36.1126, lng: -115.1767}, marker: {}},
 	{title: 'Aria', location: {lat: 36.1073, lng: -115.1766}, marker: {}},
 	{title: 'Cosmopolitan', location: {lat: 36.1098, lng: -115.1739}, marker: {}},
-	{title: 'Venetian', location: {lat: 36.1212, lng: -115.1697}, marker: {}},
-	{title: 'Palazzo', location: {lat: 36.1240, lng: -115.1679}, marker: {}},
+	{title: 'The Venetian', location: {lat: 36.1212, lng: -115.1697}, marker: {}},
+	{title: 'The Palazzo', location: {lat: 36.1240, lng: -115.1679}, marker: {}},
 	{title: 'Wynn', location: {lat: 36.1265, lng: -115.1657}, marker: {}},
 	{title: 'Encore', location: {lat: 36.1291, lng: -115.1653}, marker: {}},
 	{title: "Bally's", location: {lat: 36.1141, lng: -115.1706}, marker: {}},
@@ -25,6 +24,22 @@ var locations = [
 	{title: "Mandalay Bay", location: {lat: 36.0919, lng: -115.1752}, marker: {}},
 	{title: "Paris", location: {lat: 36.1125, lng: -115.1707}, marker: {}}
 ];
+
+// hide the options box on small screens when button is clicked
+function hideOptions() {
+	$('.options-box').css('transform', 'translate(-300px, 0)');
+	$('#map').css('left', '50px');
+	$('#hide-menu').css('display', 'none');
+	$('#show-menu').css('display', 'block');
+}
+
+// show the options box on small screens when button is clicked
+function showOptions() {
+	$('.options-box').css('transform', 'translate(0, 0');
+	$('#map').css('left', '290px');
+	$('#hide-menu').css('display', 'block');
+	$('#show-menu').css('display', 'none');
+}
 
 // initialize the google map object
 function initMap() {
@@ -67,8 +82,10 @@ var ViewModel = function() {
 	// create hotelList observable array of all locations which will be used for future functions
 	this.hotelList = ko.observableArray();
 
+	// initiate empty info window to be popluated
 	var infoWindow = new google.maps.InfoWindow();
 
+	// loop through locations and make a new Hotel object from each ithem
 	locations.forEach(function(hotel) {
 		self.hotelList.push(new Hotel(hotel));
 	});
@@ -115,9 +132,9 @@ var ViewModel = function() {
 		// url for wikipedia article on location
 		var wikiURL = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + location.title + '&format=json&callback=wikiCallback';
 		// error handling if wikipedia call fails after 8s
-	//	var wikiRequestTimeout = setTimeout(function() {
-	//		infoWindow.setContent('Wikipedia Article Unavailable');
-	//	}, 8000);
+		var wikiRequestTimeout = setTimeout(function() {
+			infoWindow.setContent('Wikipedia Article Unavailable');
+		}, 8000);
 
 		// ajax request for wikipedia data
 		$.ajax({
@@ -127,7 +144,15 @@ var ViewModel = function() {
 				console.log(data);
 				var article = data[0];
 				var url = 'http://en.wikipedia.org/wiki/' + article;
-				infoWindow.setContent('<a href="' + url + ' Las Vegas">' + article + '</a>');
+				// edge cases where wikipedia article does not include the 'Las Vegas' string at end
+				if (article == "The Palazzo" || article == "Caesars Palace" || article == "The Mirage" || article == "New York-New York" || article =="Mandalay Bay") {
+					infoWindow.setContent('<a href="' + url + '">' + 'Wikipedia: ' + article + '</a>');
+				} else {
+				// cases where wikipedia article does include 'Las Vegas' string at end
+				infoWindow.setContent('<a href="' + url + ' Las Vegas">' + 'Wikipedia: ' + article + '</a>');
+				// remove the timeout for a failed wikipedia AJAX call
+				}
+				clearTimeout(wikiRequestTimeout);
 			}
 		});
 	};

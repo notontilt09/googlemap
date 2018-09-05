@@ -33,6 +33,8 @@ function initMap() {
 		zoom: 13
 	});
 
+	var largeInfoWindow = new google.maps.InfoWindow();
+
     // loop through the locations array and create markers for each location
 	for (var i = 0; i < locations.length; i++) {
 		var position = locations[i].location;
@@ -49,6 +51,7 @@ function initMap() {
 
 	// activate the knockout.js bindings
 	ko.applyBindings(new ViewModel());
+
 }
 
 // constructor for locations (hotels)
@@ -81,7 +84,7 @@ var ViewModel = function() {
 			ko.utils.arrayForEach(self.hotelList(), function(i) {
 				i.marker.setVisible(true);
 				i.marker.addListener('click', function() {
-					self.bounce(i);
+					self.infoWindow(i);
 				});
 			});
 			return self.hotelList();
@@ -94,13 +97,21 @@ var ViewModel = function() {
 		}
 	}, self);
 
-	// animates the markers with a 2.5s long bounce
-	this.bounce = function(location) {
+
+	// animates the markers with a 2.5s long bounce and open the infoWindow associated with
+	// that marker
+
+	this.infoWindow = function(location) {
+		// 2.5s bounce 
 		location.marker.setAnimation(google.maps.Animation.BOUNCE);
 		setTimeout(function() {
 			location.marker.setAnimation(null);
 		}, 2500);
-	};
+		infoWindow.open(map, location.marker);
+
+		// set content of infoWindow
+		infoWindow.setContent(location.title);
+	}
 }
 
 
